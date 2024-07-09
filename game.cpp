@@ -47,33 +47,7 @@ public:
     }
 };
 
-class Board {
-public:
-    std::vector<Tile> tiles;
 
-    Board() {
-        // Initialize the board with some basic tiles
-        tiles = {
-            Tile(Resource::Wood, 3),
-            Tile(Resource::Brick, 4),
-            Tile(Resource::Ore, 5),
-            Tile(Resource::Grain, 6),
-            Tile(Resource::Wool, 8),
-            Tile(Resource::Wood, 9),
-            Tile(Resource::Brick, 10),
-            Tile(Resource::Ore, 11),
-            Tile(Resource::Grain, 12)
-        };
-    }
-
-    void print() {
-        std::cout << "Board:" << std::endl;
-        for (const auto& tile : tiles) {
-            std::cout << Resource::toString(tile.resource) << " (" << tile.number << ") ";
-        }
-        std::cout << std::endl;
-    }
-};
 
 class Game {
 private:

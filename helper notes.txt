@@ -1,0 +1,168 @@
+change this to also have 6 distinct corner points on each Tile. and on that tile u can have 6 sides that are between each 2 corner points. so side 1 is between corner 1 and 2. side 2 between corner 2 and 3, side 3 between 3 and 4, side 4 between 4 and 5 ,side 5 between 5 and 6 and side 6 between 6 and 1.  now this tile represents a reseource that players who have either a settlement or a city in 1 of ghe corners, so when the dice is rolled and number of that tile comes out, then the person who built that settlment on that tile(which is a hexigon) will get the resource of that tile. so we need to also have the building class that represents a building, and a settlement and a city class thatll inherit from that building class and the corners of each tile will either be occupied or not. and will either be occupied by a settlement or city or not. now the difference that if theres a city or settlement built on there is that if a city is built on a corner, then when the number on the tile rolls, then the guy who the city built will get 2 of the resources of that tile. and if they have a settlement, then they will get  1 resource. and these resources should be stored in the player class that he has control of the settlement or city on that corner. so implement all these things now
+
+also, make it that this is how the entire board iis gonna be set up:
+Hexagonal Resource Tiles:
+
+19 resource hexes, divided as follows:
+4 Forest (wood)
+4 Pasture (sheep)
+4 Field (wheat)
+3 Hill (brick)
+3 Mountain (ore)
+1 Desert (no resources)
+Number Tokens:
+
+18 numbered tokens ranging from 2 to 12 (excluding 7), divided as follows:
+1 token each for the numbers 2 and 12
+2 tokens each for the numbers 3, 4, 5, 6, 8, 9, 10, 11
+
+and the tiles are set up like this:
+3 hexigaons with their corner pointing upwards that are connected side by side eachother like:
+
+   a     b     c
+  / \   / \   / \
+ /   \ /   \ /   \
+c     d     a     b
+|     |     |     |
+|     |     |     |
+O     O     O     O
+ \   / \   / \   /
+  \ /   \ /   \ /
+
+then same thing but in the middle of the slots there will be 4 hexagons under those 3. so there will 4 hexagons that fit into the slots of the bottom points of the 3 hexagons. then under those 4, there will be 5 hexagons, then under those 5 there will be ANOTHER 4 and then under those 4 there will be another 3. 
+
+
+
+
+
+ (00,10(00,16(00,22)
+         / \   / \   / \
+
+        /   \ /   \ /   \
+       (04,07(04,13(04,19(04,25)
+       |     |     |     |
+
+       |     |     |     |
+       (08,07(08,13(08,19(08,25)
+      / \   / \   / \   / \
+
+     /   \ /   \ /   \ /   \
+    (12,04(12,10(12,16(12,22(12,28)
+    |     |     |     |     |
+
+    |     |     |     |     |
+    (16,04(16,10(16,16(16,22(16,28)
+   / \   / \   / \   / \   / \    
+
+  /   \ /   \ /   \ /   \ /   \
+ (20,01(20,07(20,13(20,19(20,25(20,
+ |     |     |     |     |     |
+
+ |     |     |     |     |     |
+ (24,01(24,07(24,13(24,19(24,25(24,
+  \   / \   / \   / \   / \   /
+
+   \ /   \ /   \ /   \ /   \ /
+    (28,04(28,10(28,16(28,22(28,28)
+    |     |     |     |     |
+
+    |     |     |     |     |
+    (32,04(32,10(32,16(32,22(32,28)
+     \   / \   / \   / \   /
+
+      \ /   \ /   \ /   \ /
+       (36,07(36,13(36,19(36,25)
+       |     |     |     |
+
+       |     |     |     |
+       (40,07(40,13(40,19(40,25)
+        \   / \   / \    /
+
+         \ /   \ /   \ /
+          (44,10(44,16(44,22) 
+
+
+ std::vector<std::pair<int, int>> indices = {
+        {0, 10}, {0, 16}, {0, 22},
+        {4, 7}, {4, 13}, {4, 19}, {4, 25},
+        {8, 7}, {8, 13}, {8, 19}, {8, 25},
+        {12, 4}, {12, 10}, {12, 16}, {12, 22}, {12, 28},
+        {16, 4}, {16, 10}, {16, 16}, {16, 22}, {16, 28},
+        {20, 1}, {20, 7}, {20, 13}, {20, 19}, {20, 25}, {20, 31},
+        {24, 1}, {24, 7}, {24, 13}, {24, 19}, {24, 25}, {24, 31},
+        {28, 4}, {28, 10}, {28, 16}, {28, 22}, {28, 28},
+        {32, 4}, {32, 10}, {32, 16}, {32, 22}, {32, 28},
+        {36, 7}, {36, 13}, {36, 19}, {36, 25},
+        {40, 7}, {40, 13}, {40, 19}, {40, 25},
+        {44, 10}, {44, 16}, {44, 22}
+    };
+ 
+
+
+
+
+
+Here are the 19 groups of indices, one for each tile:
+Tile 1:
+(0 ,10),(12 ,10), (04,07), (04,13), (08,07), (08,13)
+Tile 2:
+(0 ,16), (04,13), (04,19), (08,13), (08,19) , (12,16)
+Tile 3:
+(0,22) , (04,19), (04,25), (08,19), (08,25), (12,22)
+Tile 4:
+(08,07), (12,04), (12,10), (16,04), (16,10), (20,07)
+Tile 5:
+(08,07), (08,13), (12,10), (12,16), (16,10), (16,16)
+Tile 6:
+(08,13), (08,19), (12,16), (12,22), (16,16), (16,22)
+Tile 7:
+(08,19), (08,25), (12,22), (12,28), (16,22), (16,28)
+Tile 8:
+(16,04), (20,01), (20,07), (24,01), (24,07), (28,04)
+Tile 9:
+(16,04), (16,10), (20,07), (20,13), (24,07), (24,13)
+Tile 10:
+(16,10), (16,16), (20,13), (20,19), (24,13), (24,19)
+Tile 11:
+(16,16), (16,22), (20,19), (20,25), (24,19), (24,25)
+Tile 12:
+(16,22), (16,28), (20,25), (20,31), (24,25), (24,31)
+Tile 13:
+(24,01), (24,07), (28,04), (28,10), (32,04), (32,10)
+Tile 14:
+(24,07), (24,13), (28,10), (28,16), (32,10), (32,16)
+Tile 15:
+(24,13), (24,19), (28,16), (28,22), (32,16), (32,22)
+Tile 16:
+(24,19), (24,25), (28,22), (28,28), (32,22), (32,28)
+Tile 17:
+(32,04), (32,10), (36,07), (36,13), (40,07), (40,13)
+Tile 18:
+(32,10), (32,16), (36,13), (36,19), (40,13), (40,19)
+Tile 19:
+(32,16), (32,22), (36,19), (36,25), (40,19), (40,25)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
