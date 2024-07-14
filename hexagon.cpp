@@ -75,12 +75,12 @@ public:
 
         // Adjust corners
         int thisCorner1 = thisSide;
-        int thisCorner2 = (thisSide + 1) % 6;
+        int thisCorner2 = (thisSide+1) % 6;
         int otherCorner1 = otherSide;
-        int otherCorner2 = (otherSide + 1) % 6;
+        int otherCorner2 = (otherSide+1) % 6;
 
-        corners[thisCorner1] = otherHexagon->corners[otherCorner2];
-        corners[thisCorner2] = otherHexagon->corners[otherCorner1];
+        otherHexagon->corners[otherCorner1] = corners[thisCorner2];
+        otherHexagon->corners[otherCorner2] = corners[thisCorner1];
     }
 };
 
@@ -99,6 +99,7 @@ public:
     }
 
     void displayBoard() const {
+        
         for (const auto& hexagon : hexagons) {
             hexagon->display();
             std::cout << std::endl;
@@ -112,7 +113,7 @@ int main() {
     board.addHexagon('A');
     board.addHexagon('G');
 
-    // Attach the second hexagon "under left" of the first
+
     board.attachHexagons(0, 5, 1, 2);
 
     board.displayBoard();
