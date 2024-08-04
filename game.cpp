@@ -3,60 +3,27 @@
 #include <string>
 #include <random>
 #include <algorithm>
+#include "catanBoardManager.cpp"
 
-class Resource {
-public:
-    enum Type { Wood, Brick, Ore, Grain, Wool };
-    static std::string toString(Type type) {
-        switch (type) {
-            case Wood: return "Wood";
-            case Brick: return "Brick";
-            case Ore: return "Ore";
-            case Grain: return "Grain";
-            case Wool: return "Wool";
-            default: return "Unknown";
-        }
-    }
-};
-
-class Tile {
-public:
-    Resource::Type resource;
-    int number;
-    Tile(Resource::Type r, int n) : resource(r), number(n) {}
-};
 
 class Player {
 public:
     std::string name;
-    std::vector<Resource::Type> resources;
     int points;
 
     Player(std::string n) : name(n), points(0) {}
-
-    void addResource(Resource::Type resource) {
-        resources.push_back(resource);
-    }
-
-    void printResources() {
-        std::cout << name << "'s resources: ";
-        for (const auto& resource : resources) {
-            std::cout << Resource::toString(resource) << " ";
-        }
-        std::cout << std::endl;
-    }
 };
-
-
 
 class Game {
 private:
     std::vector<Player> players;
-    Board board;
+    CatanBoardManager boardManager;
+    ResourceManager resourceManager;
     int currentPlayerIndex;
 
 public:
-    Game() : currentPlayerIndex(0) {}
+    Game(int numPlayers) : currentPlayerIndex(0), resourceManager(numPlayers), boardManager(HexagonGrid(), numPlayers) {
+}
 
     void addPlayer(const std::string& name) {
         players.emplace_back(name);
@@ -64,35 +31,61 @@ public:
 
     void start() {
         std::cout << "Starting the game!" << std::endl;
-        board.print();
+        boardManager.show_board();
     }
 
     void playTurn() {
         Player& currentPlayer = players[currentPlayerIndex];
         std::cout << "\n" << currentPlayer.name << "'s turn" << std::endl;
 
-        // Roll dice
         int roll = rollDice();
         std::cout << currentPlayer.name << " rolled a " << roll << std::endl;
 
-        // Distribute resources based on roll
-        for (const auto& tile : board.tiles) {
-            if (tile.number == roll) {
-                currentPlayer.addResource(tile.resource);
-                std::cout << currentPlayer.name << " gets " << Resource::toString(tile.resource) << std::endl;
+        // Distribute resources based on roll (this would need to be implemented in CatanBoardManager)
+        // boardManager.distributeResources(roll, resourceManager);
+
+        resourceManager.printPlayerResources(currentPlayerIndex);
+
+        bool turnEnded = false;
+        while (!turnEnded) {
+            std::cout << "\nWhat would you like to do?" << std::endl;
+            std::cout << "1. Build a road" << std::endl;
+            std::cout << "2. Build a settlement" << std::endl;
+            std::cout << "3. Build a city" << std::endl;
+            std::cout << "4. Buy a development card" << std::endl;
+            std::cout << "5. Trade with bank" << std::endl;
+            std::cout << "6. Trade with player" << std::endl;
+            std::cout << "7. End turn" << std::endl;
+
+            int choice;
+            std::cin >> choice;
+
+            switch(choice) {
+                case 1:
+                    buildRoad(currentPlayerIndex);
+                    break;
+                case 2:
+                    buildSettlement(currentPlayerIndex);
+                    break;
+                case 3:
+                    buildCity(currentPlayerIndex);
+                    break;
+                case 4:
+                    buyDevelopmentCard(currentPlayerIndex);
+                    break;
+                case 5:
+                    tradeWithBank(currentPlayerIndex);
+                    break;
+                case 6:
+                    tradeWithPlayer(currentPlayerIndex);
+                    break;
+                case 7:
+                    turnEnded = true;
+                    break;
+                default:
+                    std::cout << "Invalid choice. Please try again." << std::endl;
             }
         }
-
-        currentPlayer.printResources();
-
-        // Simple building logic (just for demonstration)
-        if (currentPlayer.resources.size() >= 4) {
-            std::cout << currentPlayer.name << " builds a settlement and gains a point!" << std::endl;
-            currentPlayer.points++;
-            currentPlayer.resources.erase(currentPlayer.resources.begin(), currentPlayer.resources.begin() + 4);
-        }
-
-        std::cout << currentPlayer.name << " now has " << currentPlayer.points << " points" << std::endl;
 
         // Move to next player
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
@@ -115,10 +108,95 @@ private:
         std::uniform_int_distribution<> dis(2, 12);
         return dis(gen);
     }
+
+    void buildRoad(int playerIndex) {
+        // Check if player has resources
+        if (resourceManager.hasResources(playerIndex, {ResourceType::WOOD, ResourceType::BRICK})) {
+            // Implement road building logic
+            std::cout << "Building a road..." << std::endl;
+            // Remove resources
+            resourceManager.removeResources(playerIndex, {ResourceType::WOOD, ResourceType::BRICK});
+        } else {
+            std::cout << "Not enough resources to build a road." << std::endl;
+        }
+    }
+
+    void buildSettlement(int playerIndex) {
+        if (resourceManager.hasResources(playerIndex, {ResourceType::WOOD, ResourceType::BRICK, ResourceType::WOOL, ResourceType::GRAIN})) {
+            std::cout << "Building a settlement..." << std::endl;
+            // Implement settlement building logic with boardManager
+            int hex_id, corner;
+            std::cout << "Enter hex number: ";
+            std::cin >> hex_id;
+            std::cout << "Enter corner (0-5): ";
+            std::cin >> corner;
+
+            if (boardManager.place_structure(hex_id, corner, Building::Type::SETTLEMENT, playerIndex)) {
+                std::cout << "Settlement built successfully!" << std::endl;
+                players[playerIndex].points++;
+            } else {
+                std::cout << "Failed to build settlement. Make sure the location is valid and follows game rules." << std::endl;
+                // Refund resources since building failed
+                resourceManager.addResources(playerIndex, {ResourceType::WOOD, ResourceType::BRICK, ResourceType::WOOL, ResourceType::GRAIN});
+            }
+            // Remove resources
+            resourceManager.removeResources(playerIndex, {ResourceType::WOOD, ResourceType::BRICK, ResourceType::WOOL, ResourceType::GRAIN});
+            players[playerIndex].points++;
+        } else {
+            std::cout << "Not enough resources to build a settlement." << std::endl;
+        }
+    }
+
+    void buildCity(int playerIndex) {
+        if (resourceManager.hasResources(playerIndex, {ResourceType::ORE, ResourceType::ORE, ResourceType::ORE, ResourceType::GRAIN, ResourceType::GRAIN})) {
+            std::cout << "Building a city..." << std::endl;
+            // Implement city building logic with boardManager
+            int hex_id, corner;
+            std::cout << "Enter hex number: ";
+            std::cin >> hex_id;
+            std::cout << "Enter corner (0-5): ";
+            std::cin >> corner;
+
+            if (boardManager.place_structure(hex_id, corner, Building::Type::CITY, playerIndex)) {
+                std::cout << "City built successfully!" << std::endl;
+                players[playerIndex].points++;
+            } else {
+                std::cout << "Failed to build city. Make sure the location is valid and follows game rules." << std::endl;
+                // Refund resources since building failed
+                resourceManager.addResources(playerIndex, {ResourceType::ORE, ResourceType::ORE, ResourceType::ORE, ResourceType::GRAIN, ResourceType::GRAIN});
+            }
+            // Remove resources
+            resourceManager.removeResources(playerIndex, {ResourceType::ORE, ResourceType::ORE, ResourceType::ORE, ResourceType::GRAIN, ResourceType::GRAIN});
+            players[playerIndex].points++;
+        } else {
+            std::cout << "Not enough resources to build a city." << std::endl;
+        }
+    }
+
+    void buyDevelopmentCard(int playerIndex) {
+        if (resourceManager.hasResources(playerIndex, {ResourceType::WOOL, ResourceType::GRAIN, ResourceType::ORE})) {
+            std::cout << "Buying a development card..." << std::endl;
+            // Implement development card logic
+            // Remove resources
+            resourceManager.removeResources(playerIndex, {ResourceType::WOOL, ResourceType::GRAIN, ResourceType::ORE});
+        } else {
+            std::cout << "Not enough resources to buy a development card." << std::endl;
+        }
+    }
+
+    void tradeWithBank(int playerIndex) {
+        // Implement bank trading logic
+        std::cout << "Trading with bank..." << std::endl;
+    }
+
+    void tradeWithPlayer(int playerIndex) {
+        // Implement player trading logic
+        std::cout << "Trading with player..." << std::endl;
+    }
 };
 
 int main() {
-    Game game;
+    Game game(3);  // Start a game with 3 players
 
     // Add players
     game.addPlayer("Player 1");
